@@ -96,7 +96,11 @@
 
     function showPrize() {
       canvas.classList.add("hidden");
-      resultEl.textContent = prize.name;
+      resultEl.textContent = `
+  🎉 Scratch & Win 🎉<br/>
+  You have won <br/><br/>
+  <strong style="font-size:24px; color:#d9534f;">${prize.name}</strong>
+`;
       resultEl.classList.remove("hidden");
       claimPrize();
     }
@@ -116,6 +120,7 @@
   </script>
 </body>
 </html>
+
 
 
 
