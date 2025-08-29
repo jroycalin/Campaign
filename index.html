@@ -20,7 +20,7 @@
 <body>
   <div class="wrap">
     <h1>🎉 Scratch & Win 🎉</h1>
-    <p>Enter your details to play</p>
+    <p id="message">Enter your details to play</p>
 
     <form id="userForm">
       <input type="text" id="name" placeholder="Your Name" required /><br>
@@ -96,11 +96,14 @@
 
     function showPrize() {
       canvas.classList.add("hidden");
-      resultEl.textContent = `
-  🎉 Scratch & Win 🎉<br/>
-  You have won <br/><br/>
-  <strong style="font-size:24px; color:#d9534f;">${prize.name}</strong>
-`;
+      // hide the initial message
+  document.getElementById("message").classList.add("hidden");
+      / show the winning text
+  resultEl.innerHTML = `
+    🎉 Scratch & Win 🎉<br/>
+    You have won <br/><br/>
+    <strong style="font-size:24px; color:#d9534f;">${prize.name}</strong>
+  `;
       resultEl.classList.remove("hidden");
       claimPrize();
     }
@@ -120,6 +123,7 @@
   </script>
 </body>
 </html>
+
 
 
 
