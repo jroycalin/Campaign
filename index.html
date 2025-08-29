@@ -95,8 +95,10 @@
         showPrize();
       }
     }
-
+let prizeClaimed = false;
     function showPrize() {
+      if (prizeClaimed) return; // prevent multiple submissions
+        prizeClaimed = true;
       canvas.classList.add("hidden");
       // hide the initial message
   document.getElementById("message").classList.add("hidden");
@@ -125,6 +127,7 @@
   </script>
 </body>
 </html>
+
 
 
 
