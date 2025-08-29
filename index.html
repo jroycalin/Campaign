@@ -19,10 +19,10 @@
 </head>
 <body>
   <div class="wrap">
-    <div id="message">
+   
       <h1>🎉 Scratch & Win 🎉</h1>
-      <p>Enter your details to play</p>
-    </div>
+      <p id="message">Enter your details to play</p>
+    
 
     <form id="userForm">
       <input type="text" id="name" placeholder="Your Name" required /><br>
@@ -104,7 +104,6 @@ let prizeClaimed = false;
   document.getElementById("message").classList.add("hidden");
       // show the winning text
   resultEl.innerHTML= `
-    <h1 class="wrap">🎉 Scratch & Win 🎉</h1>
     <p>You have won</p>
     <p><strong style="font-size:24px; color:#d9534f;">${prize.name}</strong></p>
   `;
@@ -127,6 +126,7 @@ let prizeClaimed = false;
   </script>
 </body>
 </html>
+
 
 
 
