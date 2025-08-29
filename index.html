@@ -99,11 +99,11 @@
       // hide the initial message
   document.getElementById("message").classList.add("hidden");
       // show the winning text
-  resultEl.innerHTML = `
-    🎉 Scratch & Win 🎉<br/>
-    You have won <br/><br/>
-    <strong style="font-size:24px; color:#d9534f;">${prize.name}</strong>
-  `;
+  resultEl.textContent = `
+  🎉 Scratch & Win 🎉<br/>
+  You have won <br/><br/>
+  <strong style="font-size:24px; color:#d9534f;">${prize.name}</strong>
+`;
       resultEl.classList.remove("hidden");
       claimPrize();
     }
@@ -123,6 +123,7 @@
   </script>
 </body>
 </html>
+
 
 
 
