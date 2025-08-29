@@ -97,10 +97,9 @@
     function showPrize() {
       canvas.classList.add("hidden");
       // hide the initial message
-      document.getElementById("header").classList.add("hidden");
   document.getElementById("message").classList.add("hidden");
       // show the winning text
-  resultEl.textContent = `
+  resultEl.innerHTML= `
     <h1>🎉 Scratch & Win 🎉</h1>
     <p>You have won</p>
     <p><strong style="font-size:24px; color:#d9534f;">${prize.name}</strong></p>
@@ -124,6 +123,7 @@
   </script>
 </body>
 </html>
+
 
 
 
