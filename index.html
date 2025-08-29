@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Scratch & Win</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f7f7f7; text-align: center; margin: 0; padding: 0; }
+    .wrap { max-width: 400px; margin: 40px auto; background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    h1 { color: #333; }
+    canvas { border: 2px solid #ccc; border-radius: 8px; margin: 20px 0; cursor: pointer; }
+    form { margin: 20px 0; }
+    input { width: 90%; padding: 10px; margin: 8px 0; border: 1px solid #ccc; border-radius: 6px; }
+    button { background: #28a745; color: #fff; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; }
+    button:disabled { background: #ccc; }
+    .hidden { display: none; }
+    .result { font-size: 20px; font-weight: bold; margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>🎉 Scratch & Win 🎉</h1>
+    <p>Enter your details to play</p>
+
+    <form id="userForm">
+      <input type="text" id="name" placeholder="Your Name" required /><br>
+      <input type="email" id="email" placeholder="Your Email" required /><br>
+      <button type="submit">Start Playing</button>
+    </form>
+
+    <canvas id="scratchCanvas" width="300" height="150" class="hidden"></canvas>
+    <div id="result" class="result hidden"></div>
+  </div>
+
+  <script>
+    const PRIZES = [
+      { name: "₹500 Voucher", weight: 5, type: "win" },
+      { name: "₹100 Voucher", weight: 20, type: "win" },
+      { name: "10% OFF Code", weight: 30, type: "win" },
+      { name: "Better luck next time", weight: 45, type: "no-win" }
+    ];
+    const CLAIM_URL = "https://script.google.com/macros/s/AKfycby-p9a0kLjaYOiGmQharc1kWMxpIFiLApWwAbVdaphIgabXKSRiecc-SdQqHU8ahGWwEw/exec"; // Replace later
+
+    let user = {};
+    const canvas = document.getElementById("scratchCanvas");
+    const ctx = canvas.getContext("2d");
+    const resultEl = document.getElementById("result");
+
+    document.getElementById("userForm").addEventListener("submit", e => {
+      e.preventDefault();
+      user.name = document.getElementById("name").value;
+      user.email = document.getElementById("email").value;
+      document.getElementById("userForm").classList.add("hidden");
+      canvas.classList.remove("hidden");
+      initScratch();
+    });
+
+    function pickPrize() {
+      const total = PRIZES.reduce((a,b) => a + b.weight, 0);
+      let r = Math.random() * total;
+      for (let p of PRIZES) {
+        if (r < p.weight) return p;
+        r -= p.weight;
+      }
+      return PRIZES[PRIZES.length-1];
+    }
+
+    let prize = null;
+    function initScratch() {
+      prize = pickPrize();
+      ctx.fillStyle = "#999";
+      ctx.fillRect(0,0,canvas.width,canvas.height);
+      ctx.globalCompositeOperation = "destination-out";
+      canvas.addEventListener("mousemove", scratch);
+      canvas.addEventListener("touchmove", scratch);
+    }
+
+    function scratch(e) {
+      const rect = canvas.getBoundingClientRect();
+      const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
+      const y = (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
+      ctx.beginPath();
+      ctx.arc(x,y,15,0,Math.PI*2);
+      ctx.fill();
+      checkReveal();
+    }
+
+    function checkReveal() {
+      const pixels = ctx.getImageData(0,0,canvas.width,canvas.height).data;
+      let cleared = 0;
+      for (let i=3;i<pixels.length;i+=4) if (pixels[i] === 0) cleared++;
+      if (cleared / (pixels.length/4) > 0.5) { // 50% scratched
+        showPrize();
+      }
+    }
+
+    function showPrize() {
+      canvas.classList.add("hidden");
+      resultEl.textContent = prize.name;
+      resultEl.classList.remove("hidden");
+      claimPrize();
+    }
+
+    async function claimPrize() {
+      const payload = { 
+        name: user.name, 
+        email: user.email, 
+        prize: prize.name, 
+        code: Math.random().toString(36).substring(2,8), 
+        utm: window.location.search 
+      };
+      try {
+        await fetch(CLAIM_URL, { method:"POST", body: JSON.stringify(payload) });
+      } catch(err) { console.error(err); }
+    }
+  </script>
+</body>
+</html>
