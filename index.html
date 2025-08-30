@@ -206,42 +206,13 @@ function pickPrize() {
 }
 
 function initScratch() {
+prize = pickPrize();
+  ctx.fillStyle = "#999";
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+  ctx.globalCompositeOperation = "destination-out";
+  canvas.addEventListener("mousemove", scratch);
+  canvas.addEventListener("touchmove", scratch);
 
-
-  canvas = document.getElementById("scratchCanvas");
-      ctx = canvas.getContext("2d");
-      ctx.fillStyle = "#cccccc";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.globalCompositeOperation = "destination-out";
-
-      // Desktop
-      canvas.addEventListener("mousedown", startDraw);
-      canvas.addEventListener("mousemove", draw);
-      canvas.addEventListener("mouseup", () => isDrawing = false);
-
-      // Mobile (with scroll prevention)
-      canvas.addEventListener("touchstart", e => {
-        e.preventDefault();
-        isDrawing = true;
-        const rect = canvas.getBoundingClientRect();
-        lastX = e.touches[0].clientX - rect.left;
-        lastY = e.touches[0].clientY - rect.top;
-      }, { passive: false });
-
-      canvas.addEventListener("touchmove", e => {
-        e.preventDefault();
-        if (!isDrawing) return;
-        const rect = canvas.getBoundingClientRect();
-        const x = e.touches[0].clientX - rect.left;
-        const y = e.touches[0].clientY - rect.top;
-        scratchAt(x, y);
-        lastX = x;
-        lastY = y;
-      }, { passive: false });
-
-      canvas.addEventListener("touchend", () => {
-        isDrawing = false;
-      }, { passive: false });
 }
 
 function scratch(e) {
@@ -298,5 +269,6 @@ async function claimPrize() {
 </script>
 </body>
 </html>
+
 
 
