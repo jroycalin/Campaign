@@ -236,7 +236,7 @@ const PRIZES = [
   { name: "85% Discount", weight: 30 },
   { name: "Car", weight: 20 }
 ];
-const CLAIM_URL = "https://script.google.com/macros/s/AKfycbyaGiyy2XjWI-rqLpD7x3JfFHGZqkpsHxPmkWMN6myWLdkFyMe3wywObpsGcOCJ2FDgBw/exec"; // replace with your deployed Apps Script URL
+const CLAIM_URL = "https://script.google.com/macros/s/AKfycbz32N3VhA7TleLvD6KgL3pxzym3c7UsI4zFd1L4yo3dQvOrpT10ngI9i9bb0wqO0MJuFg/exec"; // replace with your deployed Apps Script URL
 
 let user = {};
 const canvas = document.getElementById("scratchCanvas");
@@ -337,7 +337,7 @@ async function claimPrize() {
     email: user.email, 
     prize: prize.name, 
     code: Math.random().toString(36).substring(2,8), 
-    utm: window.location.search 
+    utm: window.location.search  
   };
   try {
     await fetch(CLAIM_URL, { method:"POST", body: JSON.stringify(payload) });
@@ -346,7 +346,6 @@ async function claimPrize() {
 </script>
 </body>
 </html>
-
 
 
 
