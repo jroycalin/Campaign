@@ -177,6 +177,38 @@ button:disabled {
 @keyframes fadeInUp { from {transform: translateY(40px); opacity:0;} to {transform: translateY(0); opacity:1;} }
 
 .hidden { display: none; }
+
+/* Loader overlay */
+#loader {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(255, 255, 255, 0.85);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 6px solid #eee;
+  border-top: 6px solid #E1302F;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 12px;
+}
+
+@keyframes spin {
+  0%   { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.hidden {
+  display: none !important;
+}
+
 </style>
 </head>
 
@@ -201,6 +233,7 @@ button:disabled {
   <!-- Form -->
   <form id="userForm">
     <input type="text" id="name" placeholder="Your Name" required />
+    <input type="tel" id="mobile" placeholder="Mobile Number *" pattern="[0-9]{10}" required><br>
     <input type="email" id="email" placeholder="Your Email" required />
     <button type="submit">Start Playing</button>
   </form>
@@ -209,6 +242,13 @@ button:disabled {
   <canvas id="scratchCanvas" class="hidden"></canvas>
   <div id="result" class="result hidden"></div>
 </div>
+
+<!-- Loader -->
+<div id="loader" class="hidden">
+  <div class="spinner"></div>
+  <p>Checking your entry...</p>
+</div>
+
 
 <!-- Branch Details Section -->
 <section class="branch-details">
@@ -220,23 +260,12 @@ button:disabled {
   </ul>
 </section>
 
-
 <script>
-const PRIZES = [
-  { name: "Mobile", weight: 50 },
-  { name: "Laptop", weight: 40 },
-  { name: "Tab", weight: 30 },
-  { name: "20% Discount", weight: 40 },
-  { name: "80% Discount", weight: 10 },
-  { name: "30% Discount", weight: 60 },
-  { name: "25% Discount", weight: 30 },
-  { name: "50% Discount", weight: 40 },
-  { name: "60% Discount", weight: 30 },
-  { name: "45% Discount", weight: 40 },
-  { name: "85% Discount", weight: 30 },
-  { name: "Car", weight: 20 }
-];
-const CLAIM_URL = "https://script.google.com/macros/s/AKfycbz32N3VhA7TleLvD6KgL3pxzym3c7UsI4zFd1L4yo3dQvOrpT10ngI9i9bb0wqO0MJuFg/exec"; // replace with your deployed Apps Script URL
+
+//const CLAIM_URL = "https://script.google.com/macros/s/AKfycbzvNAQZn6kjzwHuiViSjFM7gT6UaFY03JJz-HPMj5G7-XZoBqDjMXb3rDI6CVar-0stpA/exec"; // replace with your deployed Apps Script URL
+
+const SHEET_URL = "https://script.google.com/macros/s/AKfycbzr372pKSe-voPvApCWkw6E5oXcP0H6l7PVQBLIi6DZFjCsYlf2lSTXt5dUFRGALSXepw/exec";  // doGet
+const SAVE_URL  = "https://script.google.com/macros/s/AKfycbzupkP_aSANp39LWVOtEhxodmMYel9h0zdPtl-EOw-M9VKC1vnr2-KryMuHOQQ8oop4GA/exec";  // doPost (same script if both are enabled)
 
 let user = {};
 const canvas = document.getElementById("scratchCanvas");
@@ -244,28 +273,66 @@ const ctx = canvas.getContext("2d");
 const resultEl = document.getElementById("result");
 let prize = null;
 let prizeClaimed = false;
+let prizeList = [];
 
-document.getElementById("userForm").addEventListener("submit", e => {
-  e.preventDefault();
-  user.name = document.getElementById("name").value;
-  user.email = document.getElementById("email").value;
-  document.getElementById("userForm").classList.add("hidden");
-  canvas.classList.remove("hidden");
-  initScratch();
-});
 
-function pickPrize() {
-  const total = PRIZES.reduce((a,b) => a + b.weight, 0);
-  let r = Math.random() * total;
-  for (let p of PRIZES) {
-    if (r < p.weight) return p;
-    r -= p.weight;
+// Step 1: Fetch prize list
+async function loadPrizes() {
+      try {
+        let res = await fetch(SHEET_URL);
+        let data = await res.json();
+        prizeList = data.prizes || [];
+        console.log("Prizes loaded:", prizeList);
+      } catch (err) {
+        console.error("Error loading prizes", err);
+      }
+    }
+
+
+//Check Mobile
+async function checkMobile(mobile) {
+  try {
+    const url = `${SHEET_URL}?action=checkMobile&mobile=${encodeURIComponent(mobile)}`;
+    const res = await fetch(url);
+    const data = await res.json();
+    return data.exists === true;
+  } catch (e) {
+    console.error("checkMobile error:", e);
+    return false;
   }
-  return PRIZES[PRIZES.length-1];
 }
 
+// Step 2: Pick prize locally
+function pickPrize() {
+  // filter only available prizes
+  const available = prizeList.filter(p => p.count > 0);
+  if (available.length === 0) return "Better luck Next time";
+
+  // weighted random selection
+  let total = available.reduce((sum, p) => sum + p.count, 0);
+  let rand = Math.floor(Math.random() * total);
+  for (let p of available) {
+    if (rand < p.count) return p.item;
+    rand -= p.count;
+  }
+  return null;
+}
+
+// Step 3: Save winner back
+async function saveWinner(name, mobile, email, prize) {
+ try {
+        let code= Math.random().toString(36).substring(2,8);
+        let payload = { name, mobile, email, prize , code };
+        await fetch(SAVE_URL, {
+          method: "POST",
+          body: JSON.stringify(payload)
+        });
+      } catch(err) {
+        console.error("Error saving winner", err);
+      }
+    }
+
 function initScratch() {
-prize = pickPrize();
   ctx.fillStyle = "#999";
   ctx.fillRect(0,0,canvas.width,canvas.height);
   ctx.globalCompositeOperation = "destination-out";
@@ -306,7 +373,11 @@ function checkReveal() {
   const pixels = ctx.getImageData(0,0,canvas.width,canvas.height).data;
   let cleared = 0;
   for (let i=3;i<pixels.length;i+=4) if (pixels[i] === 0) cleared++;
-  if (cleared / (pixels.length/4) > 0.5) showPrize();
+  if (cleared / (pixels.length/4) > 0.5) 
+	{
+	prize = pickPrize();
+	showPrize();
+	}
 }
 
 function showPrize() {
@@ -323,30 +394,44 @@ function showPrize() {
   canvas.style.display = "none";
 
   document.getElementById("message").classList.add("hidden");
-  resultEl.innerHTML = `🎉 You have won 🎉<br/><strong>${prize.name}</strong>`;
+  resultEl.innerHTML = `🎉 You have won 🎉<br/><strong>${prize}</strong>`;
+  saveWinner(user.name, user.mobile, user.email, prize);
   resultEl.classList.remove("hidden");
-
-  claimPrize();
-
+  
   confetti({ particleCount: 180, spread: 80, origin: { y: 0.6 } });
 }
 
-async function claimPrize() {
-  const payload = { 
-    name: user.name, 
-    email: user.email, 
-    prize: prize.name, 
-    code: Math.random().toString(36).substring(2,8), 
-    utm: window.location.search  
-  };
-  try {
-    await fetch(CLAIM_URL, { method:"POST", body: JSON.stringify(payload) });
-  } catch(err) { console.error(err); }
-}
+
+document.getElementById("userForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  user.name = document.getElementById("name").value;
+  user.email = document.getElementById("email").value;
+  user.mobile = document.getElementById("mobile").value;
+
+  // Show loader while checking
+  const loader = document.getElementById("loader");
+  loader.classList.remove("hidden");
+  //document.getElementById("loader").classList.remove("hidden");
+
+ //Mobile Restriction
+  let alreadyPlayed = await checkMobile(user.mobile);
+  if (alreadyPlayed) {
+    alert("This mobile number has already played. Please try with another number.");
+    return; // stop further execution
+  }
+
+// Hide loader after check (success or fail)
+    loader.classList.add("hidden");
+
+  document.getElementById("userForm").classList.add("hidden");
+  canvas.classList.remove("hidden");
+  initScratch();
+});
+
+window.onload = loadPrizes;
 </script>
 </body>
 </html>
-
 
 
 
