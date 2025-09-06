@@ -209,6 +209,44 @@ button:disabled {
   display: none !important;
 }
 
+/* Modal Background */
+.modal {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 10000;
+}
+
+/* Hide modal by default */
+.modal.hidden { display: none !important; }
+
+/* Modal Box */
+.modal-content {
+  background: #fff;
+  padding: 20px;
+  border-radius: 12px;
+  max-width: 500px;
+  width: 90%;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  position: relative;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+/* Close Button */
+.close {
+  position: absolute;
+  top: 10px;
+  right: 16px;
+  font-size: 22px;
+  font-weight: bold;
+  color: #E1302F;
+  cursor: pointer;
+}
+.close:hover { color: #000; }
+
 </style>
 </head>
 
@@ -249,6 +287,10 @@ button:disabled {
   <p>Checking your entry...</p>
 </div>
 
+<p style="text-align:center; margin-top:20px;">
+  <a href="#" id="termsLink">📜 Terms & Conditions</a>
+</p>
+
 
 <!-- Branch Details Section -->
 <section class="branch-details">
@@ -259,6 +301,21 @@ button:disabled {
     <li><i class="fas fa-clock"></i> Mon–Sat: 10:00 AM – 8:00 PM</li>
   </ul>
 </section>
+
+<!-- Terms & Conditions Modal -->
+<div id="termsModal" class="modal hidden">
+  <div class="modal-content">
+    <span class="close">&times;</span>
+    <h2>Terms & Conditions</h2>
+    <p>
+      You need to come to our <strong>Nabadwip branch</strong> within the given date range<strong>[10th September 2025 to 25th September 2025]</strong><br><br>
+      - Make a purchase in-store.<br>
+      - Show the screenshot of your scratch prize along with the timestamp.<br>
+      - Then, you can collect your prize 🎁.<br><br>
+      📍 Address: 123 Main Road, Nabadwip, West Bengal.
+    </p>
+  </div>
+</div>
 
 <script>
 
@@ -429,7 +486,30 @@ document.getElementById("userForm").addEventListener("submit", async e => {
 });
 
 window.onload = loadPrizes;
+
+// Terms & Conditions modal logic
+const termsModal = document.getElementById("termsModal");
+const termsLink = document.getElementById("termsLink");
+const closeBtn  = termsModal.querySelector(".close");
+
+termsLink.addEventListener("click", e => {
+  e.preventDefault();
+  termsModal.classList.remove("hidden");
+});
+
+closeBtn.addEventListener("click", () => {
+  termsModal.classList.add("hidden");
+});
+
+// Close modal when clicking outside content
+window.addEventListener("click", e => {
+  if (e.target === termsModal) {
+    termsModal.classList.add("hidden");
+  }
+});
+
 </script>
+
 </body>
 </html>
 
